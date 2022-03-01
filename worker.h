@@ -36,6 +36,12 @@ typedef struct threadNode {
 	struct threadNode* next;
 } threadNode;
 
+typedef struct Tqueue
+{
+	threadNode* top;
+	threadNode* back;
+	int count;
+}Tqueue;
 
 /* mutex struct definition */
 typedef struct worker_mutex_t {

@@ -8,8 +8,7 @@
 // INITAILIZE ALL YOUR VARIABLES HERE
 // YOUR CODE HERE
 
-threadNode *front = NULL;
-threadNode *tail = NULL;
+Tqueue waitQ;
 ucontext* scheduler;
 
 /* create a new thread */
@@ -23,32 +22,34 @@ int worker_create(worker_t * thread, pthread_attr_t * attr,
 		struct TCB* temp = (struct TCB*)malloc(sizeof(struct TCB));
 		temp->status = 1;
 		temp->threadID = thread;
-		getcontext(&thread->context);
-		&thread->context.uc_link = 0;
-		&thread->context.uc_stack.ss_sp = malloc(STACK_SIZE);
+		getcontext(&temp->context);
+		&temp->context.uc_link = 0;
+		&temp->context.uc_stack.ss_sp = malloc(STACK_SIZE);
 		temp->priority = 0;  
-		temp->stack = &thread->context.uc_stack.ss_sp;
-		&thread->context.uc_stack.ss_size = STACK_SIZE;   
-		&thread->context.uc_stack.ss_flags = 0;        
-		if ( &thread->context.uc_stack.ss_sp == 0 )
+		temp->stack = &temp->context.uc_stack.ss_sp; // check
+		&temp->context.uc_stack.ss_size = STACK_SIZE;   
+		&temp->context.uc_stack.ss_flags = 0;        
+		if ( &temp->context.uc_stack.ss_sp == 0 )
 		{
 				perror( "malloc: Could not allocate stack" );
 				exit( 1 );
 		}
-		makecontext( &thread->context, function, 0);
+		makecontext( &temp->context, function, 0);
 
-		if (front == NULL) {
-			front = (struct threadNode*)malloc(sizeof(threadNode));
-			front->next = NULL;
-			front->tcb = temp;
-			tail = front;
-		}
-		else{
-			threadNode* tnode = (struct threadNode*)malloc(sizeof(threadNode));
-			tnode->tcb = temp;
-			tnode->next = front;
-			front = tnode;
-		}
+		enqueue(waitQ, temp);
+
+		// if (front == NULL) {
+		// 	front = (struct threadNode*)malloc(sizeof(threadNode));
+		// 	front->next = NULL;
+		// 	front->tcb = temp;
+		// 	tail = front;
+		// }
+		// else{
+		// 	threadNode* tnode = (struct threadNode*)malloc(sizeof(threadNode));
+		// 	tnode->tcb = temp;
+		// 	tnode->next = front;
+		// 	front = tnode;
+		// }
        // after everything is set, push this thread into run queue and 
        // - make it ready for the execution.
 
