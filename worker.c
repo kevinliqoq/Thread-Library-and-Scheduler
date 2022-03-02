@@ -8,8 +8,11 @@
 // INITAILIZE ALL YOUR VARIABLES HERE
 // YOUR CODE HERE
 
-Tqueue waitQ;
+Tqueue* waitQ;
 ucontext* scheduler;
+ucontext* main;
+int first = 1;
+int redirect = 0;
 
 /* create a new thread */
 int worker_create(worker_t * thread, pthread_attr_t * attr, 
@@ -18,6 +21,14 @@ int worker_create(worker_t * thread, pthread_attr_t * attr,
        // - create Thread Control Block (TCB)
        // - create and initialize the context of this worker thread   
        // - allocate space of stack for this thread to run
+	   if (first){
+		   getcontext(&main);
+		   if (redirect) return 0;
+		   else{
+			   //do something;
+			   redirect = 1;
+		   }
+	   }
 	   
 		struct TCB* temp = (struct TCB*)malloc(sizeof(struct TCB));
 		temp->status = 1;
@@ -29,10 +40,9 @@ int worker_create(worker_t * thread, pthread_attr_t * attr,
 		temp->stack = &temp->context.uc_stack.ss_sp; // check
 		&temp->context.uc_stack.ss_size = STACK_SIZE;   
 		&temp->context.uc_stack.ss_flags = 0;        
-		if ( &temp->context.uc_stack.ss_sp == 0 )
-		{
-				perror( "malloc: Could not allocate stack" );
-				exit( 1 );
+		if ( &temp->context.uc_stack.ss_sp == 0 ){
+			perror( "malloc: Could not allocate stack" );
+			exit( 1 );
 		}
 		makecontext( &temp->context, function, 0);
 
